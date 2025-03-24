@@ -114,7 +114,7 @@ async def process_stream(stream):
     async for chunk in stream:
         if first_token_time is None:
             first_token_time = time.time()
-        if chunk.choices[0].delta.content:
+        if chunk.choices[0].delta.content or getattr(chunk.choices[0].delta, "reasoning_content", None):
             total_tokens += 1
         if chunk.choices[0].finish_reason is not None:
             break
