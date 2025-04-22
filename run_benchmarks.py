@@ -29,10 +29,10 @@ async def run_all_benchmarks(llm_url, api_key, model, use_long_context, adaptive
 
     # 自适应模式下的参数
     if adaptive_mode:
-        min_success_rate = 80.0  # 最低可接受成功率
+        min_success_rate = 95.0  # 最低可接受成功率
         max_concurrency = 500    # 最大尝试并发数
-        current_concurrency = 1   # 起始并发数
-        step_size = 5            # 初始步长
+        current_concurrency = 10   # 起始并发数
+        step_size = 10            # 初始步长
         
         console.print("[bold cyan]运行自适应并发探测模式...[/bold cyan]")
         
@@ -302,30 +302,38 @@ def print_summary(all_results, model_name, use_long_context):
         success_rates = [float(row[6].rstrip('%')) for row in summary]
         
         # 创建图表
+        # 设置支持中文的字体（按优先级尝试）
+        # plt.rcParams['font.sans-serif'] = [
+        #     'Noto Sans CJK SC',  # Google Noto 中文字体
+        #     'WenQuanYi Micro Hei',  # 文泉驿微米黑
+        #     'SimHei',  # 黑体（Windows 常见）
+        #     'Microsoft YaHei'  # 微软雅黑
+        # ]
+        plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
         plt.figure(figsize=(12, 10))
         
         # 1. RPS vs 并发数
         plt.subplot(2, 2, 1)
         plt.plot(concurrencies, rps_values, 'o-', color='blue')
-        plt.title('RPS vs 并发数')
-        plt.xlabel('并发数')
-        plt.ylabel('每秒请求数 (RPS)')
+        plt.title('RPS vs Concurrency')
+        plt.xlabel('Concurrency')
+        plt.ylabel('Requests Per Second (RPS)')
         plt.grid(True)
         
         # 2. 延迟 vs 并发数
         plt.subplot(2, 2, 2)
         plt.plot(concurrencies, latencies, 'o-', color='red')
-        plt.title('平均延迟 vs 并发数')
-        plt.xlabel('并发数')
-        plt.ylabel('平均延迟 (秒)')
+        plt.title('Average Latency vs Concurrency')
+        plt.xlabel('Concurrency')
+        plt.ylabel('Average Latency (Seconds)')
         plt.grid(True)
         
         # 3. 成功率 vs 并发数
         plt.subplot(2, 2, 3)
         plt.plot(concurrencies, success_rates, 'o-', color='green')
-        plt.title('成功率 vs 并发数')
-        plt.xlabel('并发数')
-        plt.ylabel('成功率 (%)')
+        plt.title('Success Rate vs Concurrency')
+        plt.xlabel('Concurrency')
+        plt.ylabel('Success Rate (%)')
         plt.ylim(0, 105)  # 设置y轴范围为0-105%
         plt.grid(True)
         
@@ -343,8 +351,8 @@ def print_summary(all_results, model_name, use_long_context):
             percentiles = ['P50', 'P95', 'P99']
             
             plt.bar(percentiles, latency_values, color=['green', 'orange', 'red'])
-            plt.title(f'延迟分布 (并发数={last_result["concurrency"]})')
-            plt.ylabel('延迟 (秒)')
+            plt.title(f'Latency Distribution (Concurrency={last_result["concurrency"]})')
+            plt.ylabel('Latency (Seconds)')
             plt.grid(True, axis='y')
         
         # 保存图表

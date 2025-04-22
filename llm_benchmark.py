@@ -10,6 +10,8 @@ import collections
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("openai").setLevel(logging.WARNING)
 
 SHORT_PROMPTS = [
     "用简单的话解释什么是人工智能。",
