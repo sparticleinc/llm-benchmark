@@ -6,6 +6,7 @@ import logging
 import argparse
 import json
 import random
+import collections
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -111,14 +112,34 @@ LONG_PROMPT_PAIRS = [
 async def process_stream(stream):
     first_token_time = None
     total_tokens = 0
-    async for chunk in stream:
-        if first_token_time is None:
-            first_token_time = time.time()
-        if chunk.choices[0].delta.content or getattr(chunk.choices[0].delta, "reasoning_content", None):
-            total_tokens += 1
-        if chunk.choices[0].finish_reason is not None:
-            break
-    return first_token_time, total_tokens
+    try:
+        async for chunk in stream:
+            if first_token_time is None:
+                first_token_time = time.time()
+            
+            # 检查是否有内容
+            content = chunk.choices[0].delta.content if hasattr(chunk.choices[0].delta, 'content') else None
+            reasoning_content = getattr(chunk.choices[0].delta, "reasoning_content", None)
+            
+            if content or reasoning_content:
+                total_tokens += 1
+            
+            # 检查是否完成
+            if chunk.choices[0].finish_reason is not None:
+                logging.debug(f"流式响应完成，原因: {chunk.choices[0].finish_reason}")
+                break
+        
+        logging.debug(f"流式响应处理完毕，共收到 {total_tokens} 个token")
+        return first_token_time, total_tokens
+    except Exception as e:
+        logging.error(f"处理流式响应时出错: {str(e)}")
+        import traceback
+        logging.error(traceback.format_exc())
+        # 如果已经收到了一些token，返回已有数据；否则返回None
+        if first_token_time and total_tokens > 0:
+            return first_token_time, total_tokens
+        else:
+            raise  # 重新抛出异常，让上层函数处理
 
 async def make_request(client, model, output_tokens, request_timeout, use_long_context):
     start_time = time.time()
@@ -128,6 +149,9 @@ async def make_request(client, model, output_tokens, request_timeout, use_long_c
     else:
         content = random.choice(SHORT_PROMPTS)
 
+    # 记录请求参数 - 保留这条有用的日志，但简化内容
+    logging.debug(f"请求参数: model={model}, max_tokens={output_tokens}, use_long_context={use_long_context}")
+    
     try:
         stream = await client.chat.completions.create(
             model=model,
@@ -137,20 +161,43 @@ async def make_request(client, model, output_tokens, request_timeout, use_long_c
             max_tokens=output_tokens,
             stream=True
         )
+        
         first_token_time, total_tokens = await asyncio.wait_for(process_stream(stream), timeout=request_timeout)
         
         end_time = time.time()
         elapsed_time = end_time - start_time
         ttft = first_token_time - start_time if first_token_time else None
         tokens_per_second = total_tokens / elapsed_time if elapsed_time > 0 else 0
-        return total_tokens, elapsed_time, tokens_per_second, ttft
+        
+        # 使用更有意义的日志信息
+        logging.info(f"请求成功: tokens={total_tokens}, 耗时={elapsed_time:.2f}秒, TPS={tokens_per_second:.2f}, TTFT={ttft:.3f}秒")
+        return total_tokens, elapsed_time, tokens_per_second, ttft, "success", None
 
     except asyncio.TimeoutError:
-        logging.warning(f"Request timed out after {request_timeout} seconds")
-        return None
+        logging.warning(f"请求超时: 超过{request_timeout}秒")
+        return None, None, None, None, "timeout", f"请求超时（{request_timeout}秒）"
     except Exception as e:
-        logging.error(f"Error during request: {str(e)}")
-        return None
+        error_type = type(e).__name__
+        error_msg = str(e)
+        
+        # 更详细的错误分类
+        if "rate_limit" in error_msg.lower():
+            error_category = "rate_limit"
+        elif "auth" in error_msg.lower() or "key" in error_msg.lower() or "unauthorized" in error_msg.lower():
+            error_category = "auth_error"
+        elif "connect" in error_msg.lower() or "network" in error_msg.lower() or "connection" in error_msg.lower():
+            error_category = "network_error"
+        elif "not found" in error_msg.lower() or "404" in error_msg:
+            error_category = "not_found"
+        elif "invalid" in error_msg.lower() or "parameter" in error_msg.lower():
+            error_category = "invalid_params"
+        else:
+            error_category = "api_error"
+        
+        # 简化错误日志，但保留关键信息
+        logging.error(f"请求失败({error_category}): {error_type}: {error_msg}")
+        
+        return None, None, None, None, error_category, f"{error_type}: {error_msg}"
 
 async def worker(client, semaphore, queue, results, model, output_tokens, request_timeout, use_long_context):
     while True:
@@ -159,14 +206,16 @@ async def worker(client, semaphore, queue, results, model, output_tokens, reques
             if task_id is None:
                 queue.task_done()
                 break
-            logging.info(f"Starting request {task_id}")
+            logging.debug(f"Starting request {task_id}")
             result = await make_request(client, model, output_tokens, request_timeout, use_long_context)
             if result:
                 results.append(result)
+                if result[4] != "success":  # 如果不是成功状态
+                    logging.warning(f"Request {task_id} failed with error type: {result[4]}, message: {result[5]}")
             else:
-                logging.warning(f"Request {task_id} failed")
+                logging.warning(f"Request {task_id} failed with unknown error")
             queue.task_done()
-            logging.info(f"Finished request {task_id}")
+            logging.debug(f"Finished request {task_id}")
 
 def calculate_percentile(values, percentile, reverse=False):
     if not values:
@@ -202,12 +251,25 @@ async def run_benchmark(num_requests, concurrency, request_timeout, output_token
 
     # Calculate metrics
     total_elapsed_time = end_time - start_time
-    total_tokens = sum(tokens for tokens, _, _, _ in results if tokens is not None)
-    latencies = [elapsed_time for _, elapsed_time, _, _ in results if elapsed_time is not None]
-    tokens_per_second_list = [tps for _, _, tps, _ in results if tps is not None]
-    ttft_list = [ttft for _, _, _, ttft in results if ttft is not None]
+    total_tokens = sum(tokens for tokens, _, _, _, _, _ in results if tokens is not None)
+    latencies = [elapsed_time for _, elapsed_time, _, _, _, _ in results if elapsed_time is not None]
+    tokens_per_second_list = [tps for _, _, tps, _, _, _ in results if tps is not None]
+    ttft_list = [ttft for _, _, _, ttft, _, _ in results if ttft is not None]
 
-    successful_requests = len(results)
+    # 收集错误统计
+    error_counter = collections.Counter()
+    error_samples = {}
+    for _, _, _, _, status, error_msg in results:
+        if status != "success":
+            error_counter[status] += 1
+            # 为每种错误类型保存最多3个样本
+            if status not in error_samples:
+                error_samples[status] = []
+            if len(error_samples[status]) < 3 and error_msg:
+                error_samples[status].append(error_msg)
+
+    successful_requests = sum(1 for _, _, _, _, status, _ in results if status == "success")
+    failed_requests = num_requests - successful_requests
     requests_per_second = successful_requests / total_elapsed_time if total_elapsed_time > 0 else 0
     avg_latency = sum(latencies) / len(latencies) if latencies else 0
     avg_tokens_per_second = sum(tokens_per_second_list) / len(tokens_per_second_list) if tokens_per_second_list else 0
@@ -222,14 +284,19 @@ async def run_benchmark(num_requests, concurrency, request_timeout, output_token
     return {
         "total_requests": num_requests,
         "successful_requests": successful_requests,
+        "failed_requests": failed_requests,
         "concurrency": concurrency,
         "request_timeout": request_timeout,
         "max_output_tokens": output_tokens,
         "use_long_context": use_long_context,
-        "model": model,  # 添加模型信息到结果中
+        "model": model,
         "total_time": total_elapsed_time,
         "requests_per_second": requests_per_second,
         "total_output_tokens": total_tokens,
+        "error_statistics": {
+            "count": dict(error_counter),
+            "samples": error_samples
+        },
         "latency": {
             "average": avg_latency,
             "p50": latency_percentiles[0],
@@ -261,34 +328,85 @@ def print_results(results, output_format="both"):
     
     if output_format in ['line', 'both']:
         print("\n基本信息:")
-        print(f"总请求数: {results['total_requests']} 个")
-        print(f"成功请求数: {results['successful_requests']} 个")
-        print(f"并发数: {results['concurrency']} 个")
-        print(f"请求超时: {results['request_timeout']} 秒")
-        print(f"最大输出token数: {results['max_output_tokens']}")
-        print(f"是否使用长文本: {'是' if results['use_long_context'] else '否'}")
-        print(f"总运行时间: {results['total_time']:.2f} 秒")
-        print(f"每秒请求数 (RPS): {results['requests_per_second']:.2f}")
-        print(f"总输出token数: {results['total_output_tokens']}")
-        print(f"模型名称: {results['model']}")
+        print(f"总请求数: {results.get('total_requests', 0)} 个")
+        print(f"成功请求数: {results.get('successful_requests', 0)} 个")
+        print(f"并发数: {results.get('concurrency', 0)} 个")
+        print(f"请求超时: {results.get('request_timeout', 0)} 秒")
+        print(f"最大输出token数: {results.get('max_output_tokens', 0)}")
+        print(f"是否使用长文本: {'是' if results.get('use_long_context', False) else '否'}")
+        
+        # 安全获取数值，提供默认值
+        total_time = results.get('total_time', 0)
+        rps = results.get('requests_per_second', 0)
+        total_tokens = results.get('total_output_tokens', 0)
+        model = results.get('model', '未知')
+        
+        print(f"总运行时间: {total_time:.2f} 秒")
+        print(f"每秒请求数 (RPS): {rps:.2f}")
+        print(f"总输出token数: {total_tokens}")
+        print(f"模型名称: {model}")
+        
+        # 安全获取延迟数据
+        latency_data = results.get('latency', {})
+        if not isinstance(latency_data, dict):
+            latency_data = {}
+            
+        avg_latency = latency_data.get('average', 0)
+        p50_latency = latency_data.get('p50', 0)
+        p95_latency = latency_data.get('p95', 0)
+        p99_latency = latency_data.get('p99', 0)
         
         print("\n延迟统计 (单位: 秒):")
-        print(f"平均延迟: {results['latency']['average']:.3f}")
-        print(f"延迟 P50: {results['latency']['p50']:.3f}")
-        print(f"延迟 P95: {results['latency']['p95']:.3f}")
-        print(f"延迟 P99: {results['latency']['p99']:.3f}")
+        print(f"平均延迟: {avg_latency:.3f}")
+        print(f"延迟 P50: {p50_latency:.3f}" if p50_latency is not None else "延迟 P50: N/A")
+        print(f"延迟 P95: {p95_latency:.3f}" if p95_latency is not None else "延迟 P95: N/A")
+        print(f"延迟 P99: {p99_latency:.3f}" if p99_latency is not None else "延迟 P99: N/A")
+        
+        # 安全获取TPS数据
+        tps_data = results.get('tokens_per_second', {})
+        if not isinstance(tps_data, dict):
+            tps_data = {}
+            
+        avg_tps = tps_data.get('average', 0)
+        p50_tps = tps_data.get('p50', 0)
+        p95_tps = tps_data.get('p95', 0)
+        p99_tps = tps_data.get('p99', 0)
         
         print("\nToken生成速度 (tokens/sec):")
-        print(f"平均速度: {results['tokens_per_second']['average']:.2f}")
-        print(f"速度 P50: {results['tokens_per_second']['p50']:.2f}")
-        print(f"速度 P95: {results['tokens_per_second']['p95']:.2f}")
-        print(f"速度 P99: {results['tokens_per_second']['p99']:.2f}")
+        print(f"平均TPS: {avg_tps:.2f}")
+        print(f"TPS P50: {p50_tps:.2f}" if p50_tps is not None else "TPS P50: N/A")
+        print(f"TPS P95: {p95_tps:.2f}" if p95_tps is not None else "TPS P95: N/A")
+        print(f"TPS P99: {p99_tps:.2f}" if p99_tps is not None else "TPS P99: N/A")
         
-        print("\n首token响应时间 (单位: 秒):")
-        print(f"平均时间: {results['time_to_first_token']['average']:.3f}")
-        print(f"TTFT P50: {results['time_to_first_token']['p50']:.3f}")
-        print(f"TTFT P95: {results['time_to_first_token']['p95']:.3f}")
-        print(f"TTFT P99: {results['time_to_first_token']['p99']:.3f}")
+        # 安全获取TTFT数据
+        ttft_data = results.get('time_to_first_token', {})
+        if not isinstance(ttft_data, dict):
+            ttft_data = {}
+            
+        avg_ttft = ttft_data.get('average', 0)
+        p50_ttft = ttft_data.get('p50', 0)
+        p95_ttft = ttft_data.get('p95', 0)
+        p99_ttft = ttft_data.get('p99', 0)
+        
+        print("\n首Token延迟 (秒):")
+        print(f"平均TTFT: {avg_ttft:.3f}")
+        print(f"TTFT P50: {p50_ttft:.3f}" if p50_ttft is not None else "TTFT P50: N/A")
+        print(f"TTFT P95: {p95_ttft:.3f}" if p95_ttft is not None else "TTFT P95: N/A")
+        print(f"TTFT P99: {p99_ttft:.3f}" if p99_ttft is not None else "TTFT P99: N/A")
+        
+        # 错误统计
+        if 'error_statistics' in results and results['error_statistics'].get('count'):
+            print("\n错误统计:")
+            for error_type, count in results['error_statistics']['count'].items():
+                print(f"{error_type}: {count}")
+            
+            # 错误样本
+            if results['error_statistics'].get('samples'):
+                print("\n错误样本:")
+                for error_type, samples in results['error_statistics']['samples'].items():
+                    print(f"{error_type} 样本:")
+                    for sample in samples:
+                        print(sample)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Benchmark ai model with LLM")

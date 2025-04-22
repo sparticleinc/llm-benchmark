@@ -45,7 +45,8 @@ python run_benchmarks.py \
     --llm_url "http://your-llm-server" \
     --api_key "your-api-key" \
     --model "your-model-name" \
-    --use_long_context
+    --use_long_context \
+    --adaptive
 ```
 
 运行单次并发测试：
