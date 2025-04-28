@@ -14,6 +14,30 @@ LLM 并发性能测试工具，支持自动化压力测试和性能报告生成�
 - **错误类型统计与样本展示**：详细分类超时、网络、认证、参数等错误，并展示典型错误样本，辅助定位问题。
 - **JSON 结果输出**：所有详细测试结果自动保存为 JSON，便于二次分析或可视化。
 
+## 环境依赖与虚拟环境
+
+1. 安装依赖包（推荐使用虚拟环境）：
+
+```bash
+# 创建虚拟环境（Windows 命令行）
+python -m venv venv
+
+# 激活虚拟环境（Windows）
+.\venv\Scripts\activate
+
+# 激活虚拟环境（Linux/macOS）
+source venv/bin/activate
+
+# 安装依赖
+pip install -r requirements.txt
+```
+
+2. 退出虚拟环境：
+
+```bash
+deactivate
+```
+
 ## 项目结构
 
 ```
