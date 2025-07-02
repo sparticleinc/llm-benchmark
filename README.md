@@ -70,7 +70,7 @@ llm-benchmark/
 
 ```bash
 python run_benchmarks.py \
-    --llm_url "http://your-llm-server" \
+    --llm_url "http://localhost:8080" \
     --api_key "your-api-key" \
     --model "your-model-name" \
     --use_long_context \
@@ -86,7 +86,7 @@ python run_benchmarks.py \
 
 ```bash
 python llm_benchmark.py \
-    --llm_url "http://your-llm-server" \
+    --llm_url "http://localhost:8080" \
     --api_key "your-api-key" \
     --model "your-model-name" \
     --num_requests 100 \
