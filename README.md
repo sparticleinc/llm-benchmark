@@ -72,7 +72,7 @@ llm-benchmark/
 python run_benchmarks.py \
     --llm_url "http://localhost:8080" \
     --api_key "your-api-key" \
-    --model "your-model-name" \
+    --model "gbase-llama-33" \
     --use_long_context \
     --adaptive \
     --request_timeout 60
@@ -88,7 +88,7 @@ python run_benchmarks.py \
 python llm_benchmark.py \
     --llm_url "http://localhost:8080" \
     --api_key "your-api-key" \
-    --model "your-model-name" \
+    --model "gbase-llama-33" \
     --num_requests 100 \
     --concurrency 10 \
     --output_tokens 128 \
