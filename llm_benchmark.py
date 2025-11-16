@@ -1,5 +1,6 @@
 import asyncio
 import time
+import base64
 import numpy as np
 from openai import AsyncOpenAI
 import logging
@@ -7,6 +8,7 @@ import argparse
 import json
 import random
 import collections
+from typing import Any, Dict, Optional
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -186,6 +188,91 @@ LONG_PROMPT_PAIRS = [
     }
 ]
 
+
+def _normalize_api_key(api_key: Optional[str]) -> Optional[str]:
+    """将占位 api_key 转换为 None，便于后续逻辑判断。"""
+    if not api_key:
+        return None
+    if api_key.strip().lower() == "default":
+        return None
+    return api_key
+
+
+def _build_basic_auth_header(api_key: Optional[str], auth_config: Dict[str, Any]) -> Optional[str]:
+    """根据现有信息构造 Basic Auth Header。"""
+    if api_key and api_key.lower().startswith("basic "):
+        return api_key.strip()
+
+    username = auth_config.get("basic_auth_user")
+    password = auth_config.get("basic_auth_password")
+    if username is not None and password is not None:
+        token = base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("utf-8")
+        return f"Basic {token}"
+
+    return None
+
+
+def _create_llm_client(llm_url: str, api_key: Optional[str], auth_config: Optional[Dict[str, Any]]) -> AsyncOpenAI:
+    """根据认证配置创建 AsyncOpenAI 客户端，支持 Bearer、Basic 以及无认证。"""
+    auth_config = auth_config or {}
+    auth_header_override = auth_config.get("auth_header")
+
+    if auth_header_override:
+        return AsyncOpenAI(base_url=llm_url, api_key="", default_headers={"Authorization": auth_header_override})
+
+    normalized_api_key = _normalize_api_key(api_key)
+    requested_type = (auth_config.get("auth_type") or "auto").lower()
+    valid_types = {"auto", "bearer", "basic", "none"}
+    if requested_type not in valid_types:
+        raise ValueError(f"Unsupported auth_type '{requested_type}'. Valid options: {', '.join(sorted(valid_types))}")
+
+    if requested_type == "auto":
+        if auth_config.get("basic_auth_user") is not None and auth_config.get("basic_auth_password") is not None:
+            auth_type = "basic"
+        elif normalized_api_key and normalized_api_key.lower().startswith("basic "):
+            auth_type = "basic"
+        elif normalized_api_key:
+            auth_type = "bearer"
+        else:
+            auth_type = "none"
+    else:
+        auth_type = requested_type
+
+    default_headers = None
+    client_api_key: Optional[str] = normalized_api_key
+
+    if auth_type == "basic":
+        header_value = _build_basic_auth_header(normalized_api_key, auth_config)
+        if not header_value:
+            raise ValueError(
+                "Basic auth requires an API key starting with 'Basic ', a fully specified --auth_header, "
+                "or both --basic_auth_user/--basic_auth_password."
+            )
+        default_headers = {"Authorization": header_value}
+        client_api_key = ""
+    elif auth_type == "none":
+        client_api_key = ""
+    elif auth_type != "bearer":
+        raise ValueError(f"Unsupported auth_type '{auth_type}'.")
+
+    if client_api_key is None:
+        # Bearer 模式下必须明确提供 key；如果没有，尽早报错
+        raise ValueError("Bearer authentication requires a valid --api_key or OPENAI_API_KEY.")
+
+    # 确保URL以/v1结尾，这对OpenAI兼容API很重要
+    if not llm_url.endswith('/v1'):
+        if llm_url.endswith('/'):
+            base_url = llm_url + 'v1'
+        else:
+            base_url = llm_url + '/v1'
+    else:
+        base_url = llm_url
+
+    logging.info(f"使用认证类型: {auth_type}")
+    logging.info(f"API端点: {base_url}")
+
+    return AsyncOpenAI(base_url=base_url, api_key=client_api_key, default_headers=default_headers)
+
 async def process_stream(stream):
     first_token_time = None
     total_tokens = 0
@@ -301,8 +388,8 @@ def calculate_percentile(values, percentile, reverse=False):
         return np.percentile(values, 100 - percentile)
     return np.percentile(values, percentile)
 
-async def run_benchmark(num_requests, concurrency, request_timeout, output_tokens, llm_url, api_key, model, use_long_context):
-    client = AsyncOpenAI(base_url=llm_url, api_key=api_key)
+async def run_benchmark(num_requests, concurrency, request_timeout, output_tokens, llm_url, api_key, model, use_long_context, auth_config=None):
+    client = _create_llm_client(llm_url, api_key, auth_config)
     semaphore = asyncio.Semaphore(concurrency)
     queue = asyncio.Queue()
     results = []
@@ -496,9 +583,21 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=str, default="deepseek-r1", 
                        help="Model name to use for inference (default: deepseek-r1)")
     parser.add_argument("--use_long_context", action="store_true", help="Use long context prompt pairs instead of short prompts")
+    parser.add_argument("--auth_type", type=str, choices=['auto', 'bearer', 'basic', 'none'], default='auto',
+                       help="Authentication strategy. auto=detect based on provided credentials.")
+    parser.add_argument("--basic_auth_user", type=str, help="Username for HTTP Basic auth")
+    parser.add_argument("--basic_auth_password", type=str, help="Password for HTTP Basic auth")
+    parser.add_argument("--auth_header", type=str, help="Override Authorization header (e.g. 'Basic xxxx')")
     parser.add_argument("--output_format", type=str, choices=['json', 'line', 'both'], 
                        default='line', help="Output format (json/line/both)")
     args = parser.parse_args()
+
+    auth_config = {
+        "auth_type": args.auth_type,
+        "basic_auth_user": args.basic_auth_user,
+        "basic_auth_password": args.basic_auth_password,
+        "auth_header": args.auth_header,
+    }
 
     results = asyncio.run(run_benchmark(
         args.num_requests, 
@@ -508,7 +607,8 @@ if __name__ == "__main__":
         args.llm_url, 
         args.api_key,
         args.model,
-        args.use_long_context
+        args.use_long_context,
+        auth_config
     ))
     print_results(results, args.output_format)
 

@@ -1,0 +1,807 @@
+[
+  {
+    "total_requests": 50,
+    "successful_requests": 50,
+    "failed_requests": 0,
+    "concurrency": 10,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 16.917017221450806,
+    "requests_per_second": 2.9556037772781787,
+    "total_output_tokens": 4257,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 3.161994972229004,
+      "p50": 3.060044527053833,
+      "p95": 4.531005322933197,
+      "p99": 4.537354571819305
+    },
+    "tokens_per_second": {
+      "average": 27.49975956334305,
+      "p50": 29.13976201455663,
+      "p95": 20.154541056885318,
+      "p99": 14.94731659541766
+    },
+    "time_to_first_token": {
+      "average": 0.48703665733337403,
+      "p50": 0.26622700691223145,
+      "p95": 1.386485993862152,
+      "p99": 1.457032308578491
+    }
+  },
+  {
+    "total_requests": 100,
+    "successful_requests": 100,
+    "failed_requests": 0,
+    "concurrency": 20,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 19.74019980430603,
+    "requests_per_second": 5.065804854629004,
+    "total_output_tokens": 8861,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 3.6878060626983644,
+      "p50": 3.3701153993606567,
+      "p95": 8.150877904891965,
+      "p99": 8.957691824436187
+    },
+    "tokens_per_second": {
+      "average": 26.48826289881965,
+      "p50": 26.777997131844458,
+      "p95": 10.450248657593752,
+      "p99": 8.488935671415355
+    },
+    "time_to_first_token": {
+      "average": 0.8143499779701233,
+      "p50": 0.16476750373840332,
+      "p95": 5.60508760213852,
+      "p99": 5.6782018756866455
+    }
+  },
+  {
+    "total_requests": 150,
+    "successful_requests": 150,
+    "failed_requests": 0,
+    "concurrency": 30,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 17.492545127868652,
+    "requests_per_second": 8.575081493488563,
+    "total_output_tokens": 12906,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 3.186843441327413,
+      "p50": 3.563836693763733,
+      "p95": 3.777991330623627,
+      "p99": 3.789806308746338
+    },
+    "tokens_per_second": {
+      "average": 26.53949088695716,
+      "p50": 26.91182314392818,
+      "p95": 23.683998198322328,
+      "p99": 8.52093170241999
+    },
+    "time_to_first_token": {
+      "average": 0.19241145610809327,
+      "p50": 0.15798234939575195,
+      "p95": 0.44264811277389515,
+      "p99": 0.45207968950271604
+    }
+  },
+  {
+    "total_requests": 200,
+    "successful_requests": 200,
+    "failed_requests": 0,
+    "concurrency": 40,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 20.908425092697144,
+    "requests_per_second": 9.565521989977888,
+    "total_output_tokens": 17339,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 3.8609055876731873,
+      "p50": 4.340105891227722,
+      "p95": 4.478287291526795,
+      "p99": 4.496650762557984
+    },
+    "tokens_per_second": {
+      "average": 22.380371651686655,
+      "p50": 22.16993156664412,
+      "p95": 20.30188365753823,
+      "p99": 18.47743497122343
+    },
+    "time_to_first_token": {
+      "average": 0.25350523471832276,
+      "p50": 0.2540931701660156,
+      "p95": 0.3841145157814026,
+      "p99": 0.3905680227279662
+    }
+  },
+  {
+    "total_requests": 250,
+    "successful_requests": 250,
+    "failed_requests": 0,
+    "concurrency": 50,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 23.266252040863037,
+    "requests_per_second": 10.745177158784296,
+    "total_output_tokens": 21690,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 4.325555821418762,
+      "p50": 4.858317494392395,
+      "p95": 5.064124119281769,
+      "p99": 5.070867741107941
+    },
+    "tokens_per_second": {
+      "average": 19.930896983819974,
+      "p50": 19.815003659456078,
+      "p95": 17.710871227607264,
+      "p99": 15.385296744307173
+    },
+    "time_to_first_token": {
+      "average": 0.24010585021972655,
+      "p50": 0.20711612701416016,
+      "p95": 0.4307452917098999,
+      "p99": 0.4395639133453369
+    }
+  },
+  {
+    "total_requests": 300,
+    "successful_requests": 300,
+    "failed_requests": 0,
+    "concurrency": 60,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 31.2332980632782,
+    "requests_per_second": 9.60513357866353,
+    "total_output_tokens": 27129,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 5.917007300059001,
+      "p50": 5.418025374412537,
+      "p95": 10.932028698921204,
+      "p99": 10.94542364358902
+    },
+    "tokens_per_second": {
+      "average": 17.00226932841589,
+      "p50": 17.955811188638855,
+      "p95": 8.316045003900202,
+      "p99": 5.388342645219038
+    },
+    "time_to_first_token": {
+      "average": 1.2848933108647664,
+      "p50": 0.22814452648162842,
+      "p95": 5.844934630393982,
+      "p99": 5.882807834148407
+    }
+  },
+  {
+    "total_requests": 350,
+    "successful_requests": 350,
+    "failed_requests": 0,
+    "concurrency": 70,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 33.70217418670654,
+    "requests_per_second": 10.385086673074454,
+    "total_output_tokens": 31319,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 6.4399420997074674,
+      "p50": 7.228274941444397,
+      "p95": 7.340740966796875,
+      "p99": 7.370430691242218
+    },
+    "tokens_per_second": {
+      "average": 14.076374809628508,
+      "p50": 13.498411103806658,
+      "p95": 12.333538865635491,
+      "p99": 7.073710921534967
+    },
+    "time_to_first_token": {
+      "average": 0.36508299214499335,
+      "p50": 0.30950891971588135,
+      "p95": 0.5879632234573364,
+      "p99": 0.603718547821045
+    }
+  },
+  {
+    "total_requests": 400,
+    "successful_requests": 400,
+    "failed_requests": 0,
+    "concurrency": 80,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 39.556710958480835,
+    "requests_per_second": 10.112064180963996,
+    "total_output_tokens": 34997,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 7.528016749620438,
+      "p50": 7.667655110359192,
+      "p95": 13.235819637775421,
+      "p99": 13.256495842933655
+    },
+    "tokens_per_second": {
+      "average": 13.07787541117024,
+      "p50": 12.58939858127339,
+      "p95": 6.61963528469658,
+      "p99": 4.807976063065928
+    },
+    "time_to_first_token": {
+      "average": 1.275641481280327,
+      "p50": 0.2488020658493042,
+      "p95": 5.974657905101776,
+      "p99": 5.9859672236442565
+    }
+  },
+  {
+    "total_requests": 450,
+    "successful_requests": 450,
+    "failed_requests": 0,
+    "concurrency": 90,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 38.57933807373047,
+    "requests_per_second": 11.664274776824515,
+    "total_output_tokens": 38985,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 7.2903477589289345,
+      "p50": 8.357986569404602,
+      "p95": 8.510132098197937,
+      "p99": 8.535325665473938
+    },
+    "tokens_per_second": {
+      "average": 11.983772308111297,
+      "p50": 11.558862968873308,
+      "p95": 10.60664199023611,
+      "p99": 9.847347162546969
+    },
+    "time_to_first_token": {
+      "average": 0.3476815382639567,
+      "p50": 0.27923643589019775,
+      "p95": 0.623928165435791,
+      "p99": 0.6371350979804993
+    }
+  },
+  {
+    "total_requests": 500,
+    "successful_requests": 500,
+    "failed_requests": 0,
+    "concurrency": 100,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 42.01462411880493,
+    "requests_per_second": 11.900618189184506,
+    "total_output_tokens": 43975,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 7.971840089797974,
+      "p50": 9.0062016248703,
+      "p95": 9.31610835790634,
+      "p99": 9.33627685070038
+    },
+    "tokens_per_second": {
+      "average": 11.111376456743521,
+      "p50": 10.698426990551757,
+      "p95": 9.949661645403202,
+      "p99": 9.050305317352072
+    },
+    "time_to_first_token": {
+      "average": 0.38808126497268675,
+      "p50": 0.2927265167236328,
+      "p95": 0.7210696935653687,
+      "p99": 0.7387265181541443
+    }
+  },
+  {
+    "total_requests": 500,
+    "successful_requests": 500,
+    "failed_requests": 0,
+    "concurrency": 130,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 40.033007860183716,
+    "requests_per_second": 12.489693548540307,
+    "total_output_tokens": 43790,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 9.678294309139252,
+      "p50": 11.116756319999695,
+      "p95": 11.59309800863266,
+      "p99": 11.6111026597023
+    },
+    "tokens_per_second": {
+      "average": 9.173863998881092,
+      "p50": 8.660533718523396,
+      "p95": 7.891097610490265,
+      "p99": 5.933048529056804
+    },
+    "time_to_first_token": {
+      "average": 0.48266284132003784,
+      "p50": 0.3628319501876831,
+      "p95": 0.9527104735374451,
+      "p99": 0.9631143760681152
+    }
+  },
+  {
+    "total_requests": 500,
+    "successful_requests": 500,
+    "failed_requests": 0,
+    "concurrency": 160,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 38.24837279319763,
+    "requests_per_second": 13.072451544629466,
+    "total_output_tokens": 44332,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 11.563592558383942,
+      "p50": 12.707478642463684,
+      "p95": 13.560272920131684,
+      "p99": 13.578460693359375
+    },
+    "tokens_per_second": {
+      "average": 7.6505846933758,
+      "p50": 7.5135228389488145,
+      "p95": 6.745563395457223,
+      "p99": 5.952104872328867
+    },
+    "time_to_first_token": {
+      "average": 0.7527619166374206,
+      "p50": 0.7422455549240112,
+      "p95": 1.4241891384124756,
+      "p99": 1.4453315401077271
+    }
+  },
+  {
+    "total_requests": 500,
+    "successful_requests": 500,
+    "failed_requests": 0,
+    "concurrency": 190,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 35.05787801742554,
+    "requests_per_second": 14.262129606118052,
+    "total_output_tokens": 43515,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 11.85701007127762,
+      "p50": 14.035407423973083,
+      "p95": 14.349251544475555,
+      "p99": 14.363650455474854
+    },
+    "tokens_per_second": {
+      "average": 7.599783110693265,
+      "p50": 6.886690112723774,
+      "p95": 6.281103805608645,
+      "p99": 5.437793588704337
+    },
+    "time_to_first_token": {
+      "average": 0.7015736026763916,
+      "p50": 0.6816496849060059,
+      "p95": 1.2739630699157716,
+      "p99": 1.2853534388542176
+    }
+  },
+  {
+    "total_requests": 500,
+    "successful_requests": 500,
+    "failed_requests": 0,
+    "concurrency": 220,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 35.381935119628906,
+    "requests_per_second": 14.131505196351288,
+    "total_output_tokens": 43939,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 14.429507339000702,
+      "p50": 16.089691996574402,
+      "p95": 16.933942139148712,
+      "p99": 16.9671214389801
+    },
+    "tokens_per_second": {
+      "average": 6.169007147814838,
+      "p50": 5.8748271537462395,
+      "p95": 5.314845071549415,
+      "p99": 4.92534100477916
+    },
+    "time_to_first_token": {
+      "average": 0.8929700589179993,
+      "p50": 1.0893135070800781,
+      "p95": 1.4004059076309203,
+      "p99": 1.41394611120224
+    }
+  },
+  {
+    "total_requests": 500,
+    "successful_requests": 500,
+    "failed_requests": 0,
+    "concurrency": 250,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 34.25274610519409,
+    "requests_per_second": 14.59736975436781,
+    "total_output_tokens": 43286,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 15.63227542257309,
+      "p50": 15.655790567398071,
+      "p95": 19.127043151855467,
+      "p99": 19.138557393550872
+    },
+    "tokens_per_second": {
+      "average": 5.514078613591385,
+      "p50": 5.2385094461477735,
+      "p95": 4.7125247487041655,
+      "p99": 3.4858598666702716
+    },
+    "time_to_first_token": {
+      "average": 1.0553741664886476,
+      "p50": 1.030186653137207,
+      "p95": 1.6928434729576112,
+      "p99": 1.704569697380066
+    }
+  },
+  {
+    "total_requests": 500,
+    "successful_requests": 500,
+    "failed_requests": 0,
+    "concurrency": 280,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 38.594812870025635,
+    "requests_per_second": 12.955108803968866,
+    "total_output_tokens": 44776,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 18.58231396627426,
+      "p50": 17.79217803478241,
+      "p95": 27.265481400489808,
+      "p99": 27.28482393503189
+    },
+    "tokens_per_second": {
+      "average": 6.271696002313188,
+      "p50": 4.7526633570648436,
+      "p95": 3.112329134198965,
+      "p99": 2.6307881509273434
+    },
+    "time_to_first_token": {
+      "average": 3.527806616306305,
+      "p50": 0.7945312261581421,
+      "p95": 7.039795613288879,
+      "p99": 7.061452779769898
+    }
+  },
+  {
+    "total_requests": 500,
+    "successful_requests": 500,
+    "failed_requests": 0,
+    "concurrency": 310,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 35.12348198890686,
+    "requests_per_second": 14.235490665700977,
+    "total_output_tokens": 43495,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 18.074166463375093,
+      "p50": 18.603434562683105,
+      "p95": 23.872927355766297,
+      "p99": 23.88216454744339
+    },
+    "tokens_per_second": {
+      "average": 5.190288067852654,
+      "p50": 4.166729803073295,
+      "p95": 3.798986982921861,
+      "p99": 3.4626990066780747
+    },
+    "time_to_first_token": {
+      "average": 1.1642521715164185,
+      "p50": 1.4217474460601807,
+      "p95": 2.055269753932953,
+      "p99": 2.061543569564819
+    }
+  },
+  {
+    "total_requests": 500,
+    "successful_requests": 500,
+    "failed_requests": 0,
+    "concurrency": 340,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 35.50480318069458,
+    "requests_per_second": 14.0826016540734,
+    "total_output_tokens": 43100,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 20.0941033372879,
+      "p50": 26.188052535057068,
+      "p95": 26.57568107843399,
+      "p99": 26.586064877510072
+    },
+    "tokens_per_second": {
+      "average": 4.861786692029732,
+      "p50": 3.7242871680536904,
+      "p95": 3.330914559275921,
+      "p99": 2.1904032787383065
+    },
+    "time_to_first_token": {
+      "average": 1.2815258040428161,
+      "p50": 1.3331509828567505,
+      "p95": 2.1333425521850584,
+      "p99": 2.144370288848877
+    }
+  },
+  {
+    "total_requests": 500,
+    "successful_requests": 500,
+    "failed_requests": 0,
+    "concurrency": 370,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 34.52631211280823,
+    "requests_per_second": 14.481708859212768,
+    "total_output_tokens": 43875,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 21.564055230140685,
+      "p50": 27.15110993385315,
+      "p95": 27.401861560344695,
+      "p99": 27.408508055210113
+    },
+    "tokens_per_second": {
+      "average": 4.694174267350851,
+      "p50": 3.613929793889925,
+      "p95": 3.2699169028782578,
+      "p99": 2.576547690084462
+    },
+    "time_to_first_token": {
+      "average": 1.4804536414146423,
+      "p50": 2.1915018558502197,
+      "p95": 2.2594008326530455,
+      "p99": 2.2659924530982973
+    }
+  },
+  {
+    "total_requests": 500,
+    "successful_requests": 500,
+    "failed_requests": 0,
+    "concurrency": 400,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 34.91772699356079,
+    "requests_per_second": 14.319374227658216,
+    "total_output_tokens": 44677,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 23.957693371772766,
+      "p50": 28.71256411075592,
+      "p95": 28.975475537776948,
+      "p99": 28.98592627286911
+    },
+    "tokens_per_second": {
+      "average": 4.211895700282871,
+      "p50": 3.385954103299553,
+      "p95": 3.104695202680702,
+      "p99": 2.807645251801718
+    },
+    "time_to_first_token": {
+      "average": 1.7289091072082519,
+      "p50": 2.4665955305099487,
+      "p95": 2.524364960193634,
+      "p99": 2.5323029351234436
+    }
+  },
+  {
+    "total_requests": 500,
+    "successful_requests": 500,
+    "failed_requests": 0,
+    "concurrency": 430,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 33.48735690116882,
+    "requests_per_second": 14.931008185436943,
+    "total_output_tokens": 44049,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 26.149637475967406,
+      "p50": 30.28770649433136,
+      "p95": 30.462383604049684,
+      "p99": 30.470199823379517
+    },
+    "tokens_per_second": {
+      "average": 3.5048285334323754,
+      "p50": 3.2184391078085306,
+      "p95": 2.862953137801069,
+      "p99": 2.662041378878289
+    },
+    "time_to_first_token": {
+      "average": 2.0930044751167296,
+      "p50": 2.5703365802764893,
+      "p95": 2.6595377206802366,
+      "p99": 2.673186638355255
+    }
+  },
+  {
+    "total_requests": 500,
+    "successful_requests": 500,
+    "failed_requests": 0,
+    "concurrency": 460,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 35.94277906417847,
+    "requests_per_second": 13.911000012191971,
+    "total_output_tokens": 44263,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 29.260417528152466,
+      "p50": 29.83607006072998,
+      "p95": 34.57938632965088,
+      "p99": 34.59431744813919
+    },
+    "tokens_per_second": {
+      "average": 3.0877536763979276,
+      "p50": 3.054765764577401,
+      "p95": 2.187255470880651,
+      "p99": 1.5946860167591772
+    },
+    "time_to_first_token": {
+      "average": 4.188225563526154,
+      "p50": 1.727334976196289,
+      "p95": 7.540965032577515,
+      "p99": 7.585380961894989
+    }
+  },
+  {
+    "total_requests": 500,
+    "successful_requests": 500,
+    "failed_requests": 0,
+    "concurrency": 490,
+    "request_timeout": 60,
+    "max_output_tokens": 100,
+    "use_long_context": true,
+    "model": "gbase-llama-33",
+    "total_time": 35.12090611457825,
+    "requests_per_second": 14.23653473998657,
+    "total_output_tokens": 44695,
+    "error_statistics": {
+      "count": {},
+      "samples": {}
+    },
+    "latency": {
+      "average": 29.880064693927764,
+      "p50": 34.66349196434021,
+      "p95": 34.88978914022446,
+      "p99": 34.90632875919342
+    },
+    "tokens_per_second": {
+      "average": 3.0581813733701293,
+      "p50": 2.8429132073968084,
+      "p95": 2.1030139610661998,
+      "p99": 1.5588172413630454
+    },
+    "time_to_first_token": {
+      "average": 5.008374669551849,
+      "p50": 7.2848639488220215,
+      "p95": 7.979960870742798,
+      "p99": 8.00506207704544
+    }
+  }
+]

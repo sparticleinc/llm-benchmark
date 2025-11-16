@@ -51,6 +51,7 @@ llm-benchmark/
 ## 组件说明
 
 - **run_benchmarks.py**：
+
   - 执行多轮自动化压力测试，支持普通和自适应两种模式
   - 在自适应模式下，自动递增并发数，直至达到性能瓶颈
   - 每轮测试自动收集并汇总详细性能数据
@@ -70,8 +71,8 @@ llm-benchmark/
 
 ```bash
 python run_benchmarks.py \
-    --llm_url "http://localhost:8080" \
-    --api_key "your-api-key" \
+    --llm_url "http://10.31.10.25/llm" \
+    --api_key "Basic Z2Jhc2VfbGxtOkBnYmFzZV9sbG0yMDI1QA==" \
     --model "gbase-llama-33" \
     --use_long_context \
     --adaptive \
@@ -96,39 +97,40 @@ python llm_benchmark.py \
 ```
 
 - **--num_requests**：本轮总请求数
-- **--concurrency**：并发数（adaptive模式下自动调整，无需手动指定）
+- **--concurrency**：并发数（adaptive 模式下自动调整，无需手动指定）
 - **--output_tokens**：每次生成的最大 token 数
 
 ## 命令行参数说明
 
 ### run_benchmarks.py 参数
 
-| 参数               | 说明                                   | 默认值      |
-| ------------------ | -------------------------------------- | ----------- |
-| --llm_url          | LLM 服务器 URL                         | 必填        |
-| --api_key          | API 密钥                               | 选填        |
-| --model            | 模型名称                               | deepseek-r1 |
-| --adaptive         | 自适应模式（自动递增并发数）           | False       |
-| --request_timeout  | 请求超时时间(秒)                       | 60          |
-| --use_long_context | 使用长文本测试模式                     | False       |
+| 参数               | 说明                         | 默认值      |
+| ------------------ | ---------------------------- | ----------- |
+| --llm_url          | LLM 服务器 URL               | 必填        |
+| --api_key          | API 密钥                     | 选填        |
+| --model            | 模型名称                     | deepseek-r1 |
+| --adaptive         | 自适应模式（自动递增并发数） | False       |
+| --request_timeout  | 请求超时时间(秒)             | 60          |
+| --use_long_context | 使用长文本测试模式           | False       |
 
 ### llm_benchmark.py 参数
 
-| 参数              | 说明                                    | 默认值      |
-| ----------------- | --------------------------------------- | ----------- |
-| --llm_url         | LLM 服务器 URL                          | 必填        |
-| --api_key         | API 密钥                                | 选填        |
-| --model           | 模型名称                                | deepseek-r1 |
-| --num_requests    | 总请求数                                | 必填        |
-| --concurrency     | 并发数（adaptive模式下自动调整）         | 必填        |
-| --output_tokens   | 输出 token 数限制                       | 50          |
-| --request_timeout | 请求超时时间(秒)                        | 60          |
-| --output_format   | 输出格式(json/line)                     | line        |
+| 参数              | 说明                              | 默认值      |
+| ----------------- | --------------------------------- | ----------- |
+| --llm_url         | LLM 服务器 URL                    | 必填        |
+| --api_key         | API 密钥                          | 选填        |
+| --model           | 模型名称                          | deepseek-r1 |
+| --num_requests    | 总请求数                          | 必填        |
+| --concurrency     | 并发数（adaptive 模式下自动调整） | 必填        |
+| --output_tokens   | 输出 token 数限制                 | 50          |
+| --request_timeout | 请求超时时间(秒)                  | 60          |
+| --output_format   | 输出格式(json/line)               | line        |
 
 ## 测试报告示例
 
 ![性能测试报告示例1](./assets/20250423-095132.jpg)
 ![性能测试报告示例2](./assets/20250423-095149.jpg)
+
 ## 开源许可
 
 本项目采用 [MIT License](LICENSE) 开源协议。

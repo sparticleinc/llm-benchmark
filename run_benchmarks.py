@@ -13,7 +13,7 @@ from rich.style import Style
 import matplotlib.pyplot as plt
 from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn
 
-async def run_all_benchmarks(llm_url, api_key, model, use_long_context, request_timeout, adaptive_mode=False):
+async def run_all_benchmarks(llm_url, api_key, model, use_long_context, request_timeout, adaptive_mode=False, auth_config=None):
     # 更细粒度的并发配置
     configurations = [
         {"num_requests": 10, "concurrency": 1, "output_tokens": 100},
@@ -53,7 +53,7 @@ async def run_all_benchmarks(llm_url, api_key, model, use_long_context, request_
                 try:
                     results = await run_benchmark(
                         test_requests, current_concurrency, request_timeout, 100, 
-                        llm_url, api_key, model, use_long_context
+                        llm_url, api_key, model, use_long_context, auth_config
                     )
                     all_results.append(results)
                     
@@ -90,7 +90,7 @@ async def run_all_benchmarks(llm_url, api_key, model, use_long_context, request_
             try:
                 results = await run_benchmark(
                     config['num_requests'], config['concurrency'], request_timeout, 
-                    config['output_tokens'], llm_url, api_key, model, use_long_context
+                    config['output_tokens'], llm_url, api_key, model, use_long_context, auth_config
                 )
                 all_results.append(results)
                 
@@ -431,9 +431,29 @@ def main():
                        help="Model name to use for inference (default: deepseek-r1)")
     parser.add_argument("--adaptive", action="store_true", help="Run in adaptive mode")
     parser.add_argument("--request_timeout", type=int, default=60, help="请求超时时间(秒)")
+    parser.add_argument("--auth_type", type=str, choices=['auto', 'bearer', 'basic', 'none'], default='auto',
+                       help="Authentication strategy. auto=detect based on provided credentials.")
+    parser.add_argument("--basic_auth_user", type=str, help="Username for HTTP Basic auth")
+    parser.add_argument("--basic_auth_password", type=str, help="Password for HTTP Basic auth")
+    parser.add_argument("--auth_header", type=str, help="Override Authorization header (e.g. 'Basic xxxx')")
     args = parser.parse_args()
 
-    all_results = asyncio.run(run_all_benchmarks(args.llm_url, args.api_key, args.model, args.use_long_context, args.request_timeout, args.adaptive))
+    auth_config = {
+        "auth_type": args.auth_type,
+        "basic_auth_user": args.basic_auth_user,
+        "basic_auth_password": args.basic_auth_password,
+        "auth_header": args.auth_header,
+    }
+
+    all_results = asyncio.run(run_all_benchmarks(
+        args.llm_url,
+        args.api_key,
+        args.model,
+        args.use_long_context,
+        args.request_timeout,
+        args.adaptive,
+        auth_config
+    ))
 
     # 保存详细结果到文件
     try:
