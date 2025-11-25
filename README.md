@@ -71,10 +71,11 @@ llm-benchmark/
 
 ```bash
 python run_benchmarks.py \
-    --llm_url "http://10.31.10.25/llm" \
+    --llm_url "https://onprem-dev.gbase.ai/llm-vl" \
     --api_key "Basic Z2Jhc2VfbGxtOkBnYmFzZV9sbG0yMDI1QA==" \
-    --model "gbase-llama-33" \
+    --model "gbase-72b-vl" \
     --use_long_context \
+    --long_context_length 13000 \
     --adaptive \
     --request_timeout 60
 ```
@@ -82,6 +83,7 @@ python run_benchmarks.py \
 - **--adaptive**：启用自适应模式，自动递增并发数，直至性能下降。
 - **--request_timeout**：每个请求的超时时间（秒），可根据实际服务端响应能力调整。
 - **--use_long_context**：使用长文本上下文测试，适合大模型长输入场景。
+- **--long_context_length**：长文本的目标字符数，系统会根据此长度自动计算合适的重复倍数（默认20000字符）。
 
 ### 单轮并发测试（自定义并发/请求数）
 
@@ -100,31 +102,51 @@ python llm_benchmark.py \
 - **--concurrency**：并发数（adaptive 模式下自动调整，无需手动指定）
 - **--output_tokens**：每次生成的最大 token 数
 
+### 长文本测试示例
+
+```bash
+python llm_benchmark.py \
+    --llm_url "http://localhost:8080" \
+    --api_key "your-api-key" \
+    --model "gbase-llama-33" \
+    --num_requests 50 \
+    --concurrency 5 \
+    --use_long_context \
+    --long_context_length 10000 \
+    --request_timeout 60
+```
+
+- **--use_long_context**：启用长文本测试模式
+- **--long_context_length**：指定长文本的目标字符数（如10000字符），系统会自动计算合适的重复倍数
+
 ## 命令行参数说明
 
 ### run_benchmarks.py 参数
 
 | 参数               | 说明                         | 默认值      |
 | ------------------ | ---------------------------- | ----------- |
-| --llm_url          | LLM 服务器 URL               | 必填        |
-| --api_key          | API 密钥                     | 选填        |
-| --model            | 模型名称                     | deepseek-r1 |
-| --adaptive         | 自适应模式（自动递增并发数） | False       |
-| --request_timeout  | 请求超时时间(秒)             | 60          |
-| --use_long_context | 使用长文本测试模式           | False       |
+| --llm_url            | LLM 服务器 URL               | 必填        |
+| --api_key            | API 密钥                     | 选填        |
+| --model              | 模型名称                     | deepseek-r1 |
+| --adaptive           | 自适应模式（自动递增并发数） | False       |
+| --request_timeout    | 请求超时时间(秒)             | 60          |
+| --use_long_context   | 使用长文本测试模式           | False       |
+| --long_context_length | 长文本目标字符数(字符)       | 20000       |
 
 ### llm_benchmark.py 参数
 
 | 参数              | 说明                              | 默认值      |
 | ----------------- | --------------------------------- | ----------- |
-| --llm_url         | LLM 服务器 URL                    | 必填        |
-| --api_key         | API 密钥                          | 选填        |
-| --model           | 模型名称                          | deepseek-r1 |
-| --num_requests    | 总请求数                          | 必填        |
-| --concurrency     | 并发数（adaptive 模式下自动调整） | 必填        |
-| --output_tokens   | 输出 token 数限制                 | 50          |
-| --request_timeout | 请求超时时间(秒)                  | 60          |
-| --output_format   | 输出格式(json/line)               | line        |
+| --llm_url            | LLM 服务器 URL                    | 必填        |
+| --api_key            | API 密钥                          | 选填        |
+| --model              | 模型名称                          | deepseek-r1 |
+| --num_requests       | 总请求数                          | 必填        |
+| --concurrency        | 并发数（adaptive 模式下自动调整） | 必填        |
+| --output_tokens      | 输出 token 数限制                 | 50          |
+| --request_timeout    | 请求超时时间(秒)                  | 60          |
+| --output_format      | 输出格式(json/line)               | line        |
+| --use_long_context   | 使用长文本测试模式                | False       |
+| --long_context_length | 长文本目标字符数(字符)            | 20000       |
 
 ## 测试报告示例
 

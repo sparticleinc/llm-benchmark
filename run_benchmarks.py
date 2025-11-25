@@ -13,7 +13,7 @@ from rich.style import Style
 import matplotlib.pyplot as plt
 from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn
 
-async def run_all_benchmarks(llm_url, api_key, model, use_long_context, request_timeout, adaptive_mode=False, auth_config=None):
+async def run_all_benchmarks(llm_url, api_key, model, use_long_context, long_context_length, request_timeout, adaptive_mode=False, auth_config=None):
     # 更细粒度的并发配置
     configurations = [
         {"num_requests": 10, "concurrency": 1, "output_tokens": 100},
@@ -52,8 +52,8 @@ async def run_all_benchmarks(llm_url, api_key, model, use_long_context, request_
                 
                 try:
                     results = await run_benchmark(
-                        test_requests, current_concurrency, request_timeout, 100, 
-                        llm_url, api_key, model, use_long_context, auth_config
+                        test_requests, current_concurrency, request_timeout, 100,
+                        llm_url, api_key, model, use_long_context, long_context_length, auth_config
                     )
                     all_results.append(results)
                     
@@ -89,8 +89,8 @@ async def run_all_benchmarks(llm_url, api_key, model, use_long_context, request_
             console.print(f"[bold cyan]运行基准测试 {i+1}/{len(configurations)}: 并发数 {config['concurrency']}...[/bold cyan]")
             try:
                 results = await run_benchmark(
-                    config['num_requests'], config['concurrency'], request_timeout, 
-                    config['output_tokens'], llm_url, api_key, model, use_long_context, auth_config
+                    config['num_requests'], config['concurrency'], request_timeout,
+                    config['output_tokens'], llm_url, api_key, model, use_long_context, long_context_length, auth_config
                 )
                 all_results.append(results)
                 
@@ -179,7 +179,7 @@ def analyze_results(all_results):
     print(f"成功分析 {len(summary)} 个有效测试结果")
     return summary, total_tokens, total_time
 
-def print_summary(all_results, model_name, use_long_context):
+def print_summary(all_results, model_name, use_long_context, long_context_length=None):
     """打印测试结果汇总"""
     summary, total_tokens, total_time = analyze_results(all_results)
     
@@ -200,6 +200,8 @@ def print_summary(all_results, model_name, use_long_context):
     
     basic_info.add_row("模型", model_name)
     basic_info.add_row("长文本模式", "是" if use_long_context else "否")
+    if use_long_context and long_context_length:
+        basic_info.add_row("目标上下文长度", f"{long_context_length:,} 字符")
     basic_info.add_row("总生成Token数", f"{total_tokens:,}")
     basic_info.add_row("总测试时间", f"{total_time:.2f} 秒")
     basic_info.add_row("平均Token生成速率", f"{total_tokens/total_time:.2f} tokens/sec")
@@ -427,7 +429,9 @@ def main():
     parser.add_argument("--llm_url", type=str, required=True, help="URL of the LLM server")
     parser.add_argument("--api_key", type=str, required=False, default="default", help="API key for LLM server")
     parser.add_argument("--use_long_context", action="store_true", help="Use long context prompt pairs instead of short prompts")
-    parser.add_argument("--model", type=str, default="deepseek-r1", 
+    parser.add_argument("--long_context_length", type=int, default=20000,
+                       help="Target length for long context prompts in characters (default: 20000)")
+    parser.add_argument("--model", type=str, default="deepseek-r1",
                        help="Model name to use for inference (default: deepseek-r1)")
     parser.add_argument("--adaptive", action="store_true", help="Run in adaptive mode")
     parser.add_argument("--request_timeout", type=int, default=60, help="请求超时时间(秒)")
@@ -450,6 +454,7 @@ def main():
         args.api_key,
         args.model,
         args.use_long_context,
+        args.long_context_length,
         args.request_timeout,
         args.adaptive,
         auth_config
@@ -465,7 +470,7 @@ def main():
         print(f"保存JSON结果时出错: {str(e)}")
     
     # 打印汇总报告
-    print_summary(all_results, args.model, args.use_long_context)
+    print_summary(all_results, args.model, args.use_long_context, args.long_context_length)
 
 if __name__ == "__main__":
     main()
