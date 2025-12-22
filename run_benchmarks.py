@@ -13,7 +13,7 @@ from rich.style import Style
 import matplotlib.pyplot as plt
 from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn
 
-async def run_all_benchmarks(llm_url, api_key, model, use_long_context, long_context_length, request_timeout, adaptive_mode=False, auth_config=None):
+async def run_all_benchmarks(llm_url, api_key, model, use_long_context, long_context_length, request_timeout, adaptive_mode=False, auth_config=None, vision_model=False):
     # 更细粒度的并发配置
     configurations = [
         {"num_requests": 10, "concurrency": 1, "output_tokens": 100},
@@ -53,7 +53,7 @@ async def run_all_benchmarks(llm_url, api_key, model, use_long_context, long_con
                 try:
                     results = await run_benchmark(
                         test_requests, current_concurrency, request_timeout, 100,
-                        llm_url, api_key, model, use_long_context, long_context_length, auth_config
+                        llm_url, api_key, model, use_long_context, long_context_length, auth_config, vision_model
                     )
                     all_results.append(results)
                     
@@ -90,7 +90,7 @@ async def run_all_benchmarks(llm_url, api_key, model, use_long_context, long_con
             try:
                 results = await run_benchmark(
                     config['num_requests'], config['concurrency'], request_timeout,
-                    config['output_tokens'], llm_url, api_key, model, use_long_context, long_context_length, auth_config
+                    config['output_tokens'], llm_url, api_key, model, use_long_context, long_context_length, auth_config, vision_model
                 )
                 all_results.append(results)
                 
@@ -179,7 +179,7 @@ def analyze_results(all_results):
     print(f"成功分析 {len(summary)} 个有效测试结果")
     return summary, total_tokens, total_time
 
-def print_summary(all_results, model_name, use_long_context, long_context_length=None):
+def print_summary(all_results, model_name, use_long_context, long_context_length=None, vision_model=False):
     """打印测试结果汇总"""
     summary, total_tokens, total_time = analyze_results(all_results)
     
@@ -199,6 +199,7 @@ def print_summary(all_results, model_name, use_long_context, long_context_length
     basic_info.add_column("值", style="green", width=40)
     
     basic_info.add_row("模型", model_name)
+    basic_info.add_row("视觉模型", "是" if vision_model else "否")
     basic_info.add_row("长文本模式", "是" if use_long_context else "否")
     if use_long_context and long_context_length:
         basic_info.add_row("目标上下文长度", f"{long_context_length:,} 字符")
@@ -440,6 +441,7 @@ def main():
     parser.add_argument("--basic_auth_user", type=str, help="Username for HTTP Basic auth")
     parser.add_argument("--basic_auth_password", type=str, help="Password for HTTP Basic auth")
     parser.add_argument("--auth_header", type=str, help="Override Authorization header (e.g. 'Basic xxxx')")
+    parser.add_argument("--vision_model", action="store_true", help="是否使用视觉模型输入格式")
     args = parser.parse_args()
 
     auth_config = {
@@ -457,7 +459,8 @@ def main():
         args.long_context_length,
         args.request_timeout,
         args.adaptive,
-        auth_config
+        auth_config,
+        args.vision_model
     ))
 
     # 保存详细结果到文件
@@ -470,7 +473,7 @@ def main():
         print(f"保存JSON结果时出错: {str(e)}")
     
     # 打印汇总报告
-    print_summary(all_results, args.model, args.use_long_context, args.long_context_length)
+    print_summary(all_results, args.model, args.use_long_context, args.long_context_length, args.vision_model)
 
 if __name__ == "__main__":
     main()

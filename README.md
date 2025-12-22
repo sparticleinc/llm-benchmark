@@ -13,6 +13,7 @@ LLM 并发性能测试工具，支持自动化压力测试和性能报告生成�
 - **流式响应测试**：支持 OpenAI 风格的流式输出，统计首 Token 延迟、整体吞吐等。
 - **错误类型统计与样本展示**：详细分类超时、网络、认证、参数等错误，并展示典型错误样本，辅助定位问题。
 - **JSON 结果输出**：所有详细测试结果自动保存为 JSON，便于二次分析或可视化。
+- **视觉模型兼容**：新增 `--vision_model`，自动按 `vl-model-template-data.json` 模板组装视觉消息，并在 system/user 中追加实时戳，防止多轮压测结果被缓存。
 
 ## 环境依赖与虚拟环境
 
@@ -64,6 +65,7 @@ llm-benchmark/
   - 统计每次请求的延迟、吞吐、Token 速率、首 Token 时间等
   - 分类统计各种错误类型并展示典型错误样本
   - 支持灵活的参数配置，适配多种 LLM 服务端
+  - 支持视觉模型消息模板加载（默认 `vl-model-template-data.json`），每轮请求自动追加时间戳防缓存
 
 ## 使用方法
 
@@ -84,6 +86,21 @@ python run_benchmarks.py \
 - **--request_timeout**：每个请求的超时时间（秒），可根据实际服务端响应能力调整。
 - **--use_long_context**：使用长文本上下文测试，适合大模型长输入场景。
 - **--long_context_length**：长文本的目标字符数，系统会根据此长度自动计算合适的重复倍数（默认20000字符）。
+
+### 视觉模型压测示例
+
+```bash
+python run_benchmarks.py \
+    --llm_url "https://onprem-dev.gbase.ai/llm-vl" \
+    --api_key "your-api-key" \
+    --model "gbase-72b-vl" \
+    --vision_model \
+    --adaptive \
+    --request_timeout 120
+```
+
+- **--vision_model**：按 `vl-model-template-data.json` 模板构造视觉输入，每条 system/user 消息都会追加当前时间戳，避免多轮压测被服务端缓存。
+- 视觉模式下会忽略长文本参数；如果需要自定义模板，可替换同名文件内容。
 
 ### 单轮并发测试（自定义并发/请求数）
 
@@ -132,6 +149,7 @@ python llm_benchmark.py \
 | --request_timeout    | 请求超时时间(秒)             | 60          |
 | --use_long_context   | 使用长文本测试模式           | False       |
 | --long_context_length | 长文本目标字符数(字符)       | 20000       |
+| --vision_model       | 使用视觉模型消息格式并追加时间戳 | False   |
 
 ### llm_benchmark.py 参数
 
@@ -147,6 +165,7 @@ python llm_benchmark.py \
 | --output_format      | 输出格式(json/line)               | line        |
 | --use_long_context   | 使用长文本测试模式                | False       |
 | --long_context_length | 长文本目标字符数(字符)            | 20000       |
+| --vision_model       | 使用视觉模型消息格式并追加时间戳   | False       |
 
 ## 测试报告示例
 

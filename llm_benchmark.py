@@ -8,6 +8,7 @@ import argparse
 import json
 import random
 import collections
+import os
 from typing import Any, Dict, Optional
 
 # Set up logging
@@ -188,6 +189,55 @@ LONG_PROMPT_PAIRS = [
     }
 ]
 
+VISION_TEMPLATE_FILE = "vl-model-template-data.json"
+_VISION_MESSAGES_CACHE = None
+
+
+def _load_vision_messages_template():
+    """加载视觉模型请求模板。"""
+    global _VISION_MESSAGES_CACHE
+    if _VISION_MESSAGES_CACHE is not None:
+        return _VISION_MESSAGES_CACHE
+
+    try:
+        template_path = os.path.join(os.path.dirname(__file__), VISION_TEMPLATE_FILE)
+        with open(template_path, "r") as f:
+            template_data = json.load(f)
+        messages_raw = template_data.get("messages")
+        if isinstance(messages_raw, str):
+            messages = json.loads(messages_raw)
+        elif isinstance(messages_raw, list):
+            messages = messages_raw
+        else:
+            raise ValueError("视觉模板文件中的 messages 字段格式不正确")
+        _VISION_MESSAGES_CACHE = messages
+        return messages
+    except Exception as exc:  # pragma: no cover - 辅助加载错误时直接抛出
+        logging.error(f"加载视觉模型模板失败: {exc}")
+        raise
+
+
+def _build_vision_messages(timestamp_label: str):
+    """
+    基于模板构造视觉模型的消息，并为 system/user 加上时间戳，避免缓存。
+    """
+    base_messages = _load_vision_messages_template()
+    # 通过序列化实现深拷贝，避免原模板被修改
+    messages = json.loads(json.dumps(base_messages))
+
+    for message in messages:
+        role = message.get("role")
+        if role == "system" and isinstance(message.get("content"), str):
+            message["content"] = f"{message['content']}\n\n[timestamp:{timestamp_label}]"
+        elif role == "user":
+            content = message.get("content")
+            if isinstance(content, list):
+                content.append({"type": "text", "text": f"timestamp:{timestamp_label}"})
+            elif isinstance(content, str):
+                message["content"] = f"{content}\n\n[timestamp:{timestamp_label}]"
+
+    return messages
+
 
 def _normalize_api_key(api_key: Optional[str]) -> Optional[str]:
     """将占位 api_key 转换为 None，便于后续逻辑判断。"""
@@ -305,37 +355,46 @@ async def process_stream(stream):
         else:
             raise  # 重新抛出异常，让上层函数处理
 
-async def make_request(client, model, output_tokens, request_timeout, use_long_context, long_context_length=20000):
+async def make_request(client, model, output_tokens, request_timeout, use_long_context, long_context_length=20000, vision_model=False):
     start_time = time.time()
-    if use_long_context:
-        prompt_pair = random.choice(LONG_PROMPT_PAIRS)
-        # 根据目标长度动态计算倍数
-        context_base = prompt_pair["context_base"]
-        context_base_length = len(context_base)
+    timestamp_label = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
-        # 计算需要重复的倍数，至少为1
-        multiplier = max(1, long_context_length // context_base_length)
-
-        # 构建最终的上下文内容
-        content = context_base * multiplier + "\n\n" + prompt_pair["prompt"]
-
-        # 记录实际长度信息用于调试
-        actual_context_length = len(context_base * multiplier)
-        total_content_length = len(content)
-        logging.debug(f"目标上下文长度: {long_context_length}, 基础上下文长度: {context_base_length}, "
-                     f"计算倍数: {multiplier}, 实际上下文长度: {actual_context_length}, 总内容长度: {total_content_length}")
+    if vision_model:
+        if use_long_context:
+            logging.debug("视觉模型模式下忽略长文本参数")
+        messages = _build_vision_messages(timestamp_label)
+        logging.debug("视觉模型请求: 使用模板消息并追加时间戳避免缓存")
     else:
-        content = random.choice(SHORT_PROMPTS)
+        if use_long_context:
+            prompt_pair = random.choice(LONG_PROMPT_PAIRS)
+            # 根据目标长度动态计算倍数
+            context_base = prompt_pair["context_base"]
+            context_base_length = len(context_base)
+
+            # 计算需要重复的倍数，至少为1
+            multiplier = max(1, long_context_length // context_base_length)
+
+            # 构建最终的上下文内容
+            content = context_base * multiplier + "\n\n" + prompt_pair["prompt"]
+
+            # 记录实际长度信息用于调试
+            actual_context_length = len(context_base * multiplier)
+            total_content_length = len(content)
+            logging.debug(f"目标上下文长度: {long_context_length}, 基础上下文长度: {context_base_length}, "
+                         f"计算倍数: {multiplier}, 实际上下文长度: {actual_context_length}, 总内容长度: {total_content_length}")
+        else:
+            content = random.choice(SHORT_PROMPTS)
+        messages = [
+            {"role": "user", "content": content}
+        ]
 
     # 记录请求参数 - 保留这条有用的日志，但简化内容
-    logging.debug(f"请求参数: model={model}, max_tokens={output_tokens}, use_long_context={use_long_context}")
+    logging.debug(f"请求参数: model={model}, max_tokens={output_tokens}, use_long_context={use_long_context}, vision_model={vision_model}")
     
     try:
         stream = await client.chat.completions.create(
             model=model,
-            messages=[
-                {"role": "user", "content": content}
-            ],
+            messages=messages,
             max_tokens=output_tokens,
             stream=True
         )
@@ -377,7 +436,7 @@ async def make_request(client, model, output_tokens, request_timeout, use_long_c
         
         return None, None, None, None, error_category, f"{error_type}: {error_msg}"
 
-async def worker(client, semaphore, queue, results, model, output_tokens, request_timeout, use_long_context, long_context_length):
+async def worker(client, semaphore, queue, results, model, output_tokens, request_timeout, use_long_context, long_context_length, vision_model):
     while True:
         async with semaphore:
             task_id = await queue.get()
@@ -385,7 +444,7 @@ async def worker(client, semaphore, queue, results, model, output_tokens, reques
                 queue.task_done()
                 break
             logging.debug(f"Starting request {task_id}")
-            result = await make_request(client, model, output_tokens, request_timeout, use_long_context, long_context_length)
+            result = await make_request(client, model, output_tokens, request_timeout, use_long_context, long_context_length, vision_model)
             if result:
                 results.append(result)
                 if result[4] != "success":  # 如果不是成功状态
@@ -402,7 +461,7 @@ def calculate_percentile(values, percentile, reverse=False):
         return np.percentile(values, 100 - percentile)
     return np.percentile(values, percentile)
 
-async def run_benchmark(num_requests, concurrency, request_timeout, output_tokens, llm_url, api_key, model, use_long_context, long_context_length=20000, auth_config=None):
+async def run_benchmark(num_requests, concurrency, request_timeout, output_tokens, llm_url, api_key, model, use_long_context, long_context_length=20000, auth_config=None, vision_model=False):
     client = _create_llm_client(llm_url, api_key, auth_config)
     semaphore = asyncio.Semaphore(concurrency)
     queue = asyncio.Queue()
@@ -417,7 +476,7 @@ async def run_benchmark(num_requests, concurrency, request_timeout, output_token
         await queue.put(None)
 
     # Create worker tasks
-    workers = [asyncio.create_task(worker(client, semaphore, queue, results, model, output_tokens, request_timeout, use_long_context, long_context_length)) for _ in range(concurrency)]
+    workers = [asyncio.create_task(worker(client, semaphore, queue, results, model, output_tokens, request_timeout, use_long_context, long_context_length, vision_model)) for _ in range(concurrency)]
 
     start_time = time.time()
     
@@ -472,6 +531,7 @@ async def run_benchmark(num_requests, concurrency, request_timeout, output_token
         "total_time": total_elapsed_time,
         "requests_per_second": requests_per_second,
         "total_output_tokens": total_tokens,
+        "vision_model": vision_model,
         "error_statistics": {
             "count": dict(error_counter),
             "samples": error_samples
@@ -607,6 +667,7 @@ if __name__ == "__main__":
     parser.add_argument("--basic_auth_user", type=str, help="Username for HTTP Basic auth")
     parser.add_argument("--basic_auth_password", type=str, help="Password for HTTP Basic auth")
     parser.add_argument("--auth_header", type=str, help="Override Authorization header (e.g. 'Basic xxxx')")
+    parser.add_argument("--vision_model", action="store_true", help="Flag to indicate the target model expects vision inputs")
     parser.add_argument("--output_format", type=str, choices=['json', 'line', 'both'], 
                        default='line', help="Output format (json/line/both)")
     args = parser.parse_args()
@@ -628,7 +689,8 @@ if __name__ == "__main__":
         args.model,
         args.use_long_context,
         args.long_context_length,
-        auth_config
+        auth_config,
+        args.vision_model
     ))
     print_results(results, args.output_format)
 
